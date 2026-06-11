@@ -1,0 +1,805 @@
+<?xml version="1.0"?>
+<robot name="Hand">
+
+  <!-- Materials -->
+  <material name="Steel">
+    <color rgba="0.098 0.098 0.098 1.0"/>
+  </material>
+  <material name="PPS">
+    <color rgba="0.098 0.098 0.098 1.0"/>
+  </material>
+
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0.066591 -0.028996 -0.014407" rpy="0 0 0"/>
+      <mass value="1.013808"/>
+      <inertia ixx="1.383921e-03" ixy="-5.654158e-04" ixz="3.315812e-08"
+               iyy="1.020927e-03" iyz="-8.614328e-08" izz="1.605222e-03"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/base_link.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/base_link_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="MOTOR_BASE_HOLDER_1">
+    <inertial>
+      <origin xyz="0.074767 -0.027619 -0.015090" rpy="0 0 0"/>
+      <mass value="0.224905"/>
+      <inertia ixx="6.913794e-05" ixy="1.514377e-08" ixz="-2.063933e-07"
+               iyy="4.187085e-05" iyz="2.578137e-07" izz="5.435582e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/MOTOR_BASE_HOLDER_1.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/MOTOR_BASE_HOLDER_1_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="MOTOR_BASE_HOLDER_2">
+    <inertial>
+      <origin xyz="0.074767 -0.027368 -0.015090" rpy="0 0 0"/>
+      <mass value="0.224905"/>
+      <inertia ixx="6.913068e-05" ixy="1.725252e-07" ixz="-2.063933e-07"
+               iyy="4.187085e-05" iyz="-4.075756e-07" izz="5.434856e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/MOTOR_BASE_HOLDER_2.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/MOTOR_BASE_HOLDER_2_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_ST3215_Servo_3">
+    <inertial>
+      <origin xyz="-0.012382 -0.018839 0.000000" rpy="0 0 0"/>
+      <mass value="0.055721"/>
+      <inertia ixx="7.436440e-06" ixy="1.103230e-07" ixz="-4.448752e-10"
+               iyy="1.201054e-05" iyz="-3.696328e-10" izz="1.401069e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo_3.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="PPS"/>
+    </visual>
+    <collision>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo_3_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_ST3215_Servo">
+    <inertial>
+      <origin xyz="-0.012382 -0.018839 0.000000" rpy="0 0 0"/>
+      <mass value="0.055721"/>
+      <inertia ixx="7.436440e-06" ixy="1.103230e-07" ixz="-4.448752e-10"
+               iyy="1.201054e-05" iyz="-3.696328e-10" izz="1.401069e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="PPS"/>
+    </visual>
+    <collision>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_ST3215_Servo_2">
+    <inertial>
+      <origin xyz="-0.012382 -0.018839 0.000000" rpy="0 0 0"/>
+      <mass value="0.055721"/>
+      <inertia ixx="7.436440e-06" ixy="1.103230e-07" ixz="-4.448752e-10"
+               iyy="1.201054e-05" iyz="-3.696328e-10" izz="1.401069e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo_2.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="PPS"/>
+    </visual>
+    <collision>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo_2_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="MOTOR_BASE_HOLDER_THUMB">
+    <inertial>
+      <origin xyz="-0.028833 -0.000144 0.029185" rpy="0 0 0"/>
+      <mass value="0.593673"/>
+      <inertia ixx="3.008634e-04" ixy="6.580482e-08" ixz="1.702190e-05"
+               iyy="3.422514e-04" iyz="9.817237e-07" izz="1.660279e-04"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.108578 0.027228 0.067178" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/MOTOR_BASE_HOLDER_THUMB.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.108578 0.027228 0.067178" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/MOTOR_BASE_HOLDER_THUMB_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="MOTOR_SECOND_JOINT_HOLDER">
+    <inertial>
+      <origin xyz="-0.000258 0.008760 0.024675" rpy="0 0 0"/>
+      <mass value="0.277024"/>
+      <inertia ixx="2.136545e-04" ixy="8.699498e-07" ixz="2.887339e-06"
+               iyy="1.509523e-04" iyz="-3.249964e-05" izz="1.182002e-04"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.145000 0.037250 0.000056" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/MOTOR_SECOND_JOINT_HOLDER.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.145000 0.037250 0.000056" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/MOTOR_SECOND_JOINT_HOLDER_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="MOTOR_FIRST_JOINT_HOLDER">
+    <inertial>
+      <origin xyz="-0.000251 -0.008549 0.024959" rpy="0 0 0"/>
+      <mass value="0.284999"/>
+      <inertia ixx="2.141894e-04" ixy="-1.009452e-06" ixz="2.866496e-06"
+               iyy="1.524190e-04" iyz="2.484643e-05" izz="1.180930e-04"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.145000 0.000900 0.000056" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/MOTOR_FIRST_JOINT_HOLDER.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.145000 0.000900 0.000056" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/MOTOR_FIRST_JOINT_HOLDER_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_ST3215_Servo_4">
+    <inertial>
+      <origin xyz="-0.012382 -0.018839 0.000000" rpy="0 0 0"/>
+      <mass value="0.055721"/>
+      <inertia ixx="7.436440e-06" ixy="1.103230e-07" ixz="-4.448752e-10"
+               iyy="1.201054e-05" iyz="-3.696328e-10" izz="1.401069e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo_4.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="PPS"/>
+    </visual>
+    <collision>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo_4_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_ST3215_Servo_5">
+    <inertial>
+      <origin xyz="-0.012382 -0.018839 0.000000" rpy="0 0 0"/>
+      <mass value="0.055721"/>
+      <inertia ixx="7.436440e-06" ixy="1.103230e-07" ixz="-4.448752e-10"
+               iyy="1.201054e-05" iyz="-3.696328e-10" izz="1.401069e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo_5.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="PPS"/>
+    </visual>
+    <collision>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo_5_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_LINKAGE">
+    <inertial>
+      <origin xyz="-0.000074 0.006850 0.015264" rpy="0 0 0"/>
+      <mass value="0.028920"/>
+      <inertia ixx="3.472668e-06" ixy="2.710505e-20" ixz="-2.000900e-08"
+               iyy="3.171127e-06" iyz="-2.032879e-20" izz="1.000000e-06"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.135000 0.026050 -0.064846" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_LINKAGE.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.135000 0.026050 -0.064846" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_LINKAGE_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_ST3215_Servo_6">
+    <inertial>
+      <origin xyz="-0.012382 -0.018839 0.000000" rpy="0 0 0"/>
+      <mass value="0.055721"/>
+      <inertia ixx="7.436440e-06" ixy="1.103230e-07" ixz="-4.448752e-10"
+               iyy="1.201054e-05" iyz="-3.696328e-10" izz="1.401069e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo_6.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="PPS"/>
+    </visual>
+    <collision>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo_6_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_LINKAGE_3">
+    <inertial>
+      <origin xyz="-0.000074 -0.006850 0.015264" rpy="0 0 0"/>
+      <mass value="0.028920"/>
+      <inertia ixx="3.472668e-06" ixy="2.710505e-20" ixz="-2.000900e-08"
+               iyy="3.171127e-06" iyz="-2.032879e-20" izz="1.000000e-06"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.135000 0.012350 -0.064846" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_LINKAGE_3.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.135000 0.012350 -0.064846" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_LINKAGE_3_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="MOTOR_THUMB_JOINT_HOLDER">
+    <inertial>
+      <origin xyz="-0.000152 0.019110 0.021914" rpy="0 0 0"/>
+      <mass value="0.388888"/>
+      <inertia ixx="3.488725e-04" ixy="-1.342450e-07" ixz="2.834863e-06"
+               iyy="1.904989e-04" iyz="-4.286789e-06" izz="2.308712e-04"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.145000 0.037250 0.000056" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/MOTOR_THUMB_JOINT_HOLDER.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.145000 0.037250 0.000056" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/MOTOR_THUMB_JOINT_HOLDER_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_BACK_PUSHER">
+    <inertial>
+      <origin xyz="-0.007343 -0.018627 0.020097" rpy="0 0 0"/>
+      <mass value="0.090152"/>
+      <inertia ixx="5.589585e-05" ixy="-5.631638e-08" ixz="3.739027e-06"
+               iyy="2.972674e-05" iyz="6.972420e-07" izz="3.155730e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.145000 0.001000 -0.050000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_BACK_PUSHER.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.145000 0.001000 -0.050000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_BACK_PUSHER_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_FINGERTIP_1">
+    <inertial>
+      <origin xyz="0.006129 -0.012864 0.019053" rpy="0 0 0"/>
+      <mass value="0.178882"/>
+      <inertia ixx="5.317752e-05" ixy="-6.741018e-07" ixz="4.420193e-06"
+               iyy="3.501392e-05" iyz="4.899360e-06" izz="2.709692e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.007838 -0.006730 -0.052018" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_FINGERTIP_1.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.007838 -0.006730 -0.052018" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_FINGERTIP_1_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_BACK_PUSHER_3">
+    <inertial>
+      <origin xyz="-0.007343 0.017623 0.020097" rpy="0 0 0"/>
+      <mass value="0.090152"/>
+      <inertia ixx="5.589585e-05" ixy="-5.631638e-08" ixz="3.739027e-06"
+               iyy="2.972674e-05" iyz="6.972420e-07" izz="3.155730e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.145000 0.037250 -0.050000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_BACK_PUSHER_3.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.145000 0.037250 -0.050000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_BACK_PUSHER_3_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="FINGERTIP_2">
+    <inertial>
+      <origin xyz="0.006129 0.001136 -0.019053" rpy="0 0 0"/>
+      <mass value="0.178882"/>
+      <inertia ixx="5.317752e-05" ixy="-6.741018e-07" ixz="-4.420193e-06"
+               iyy="3.501392e-05" iyz="-4.899360e-06" izz="2.709692e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.007838 0.007270 0.052018" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/FINGERTIP_2.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.007838 0.007270 0.052018" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/FINGERTIP_2_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_ST3215_Servo_7">
+    <inertial>
+      <origin xyz="-0.012382 -0.018839 0.000000" rpy="0 0 0"/>
+      <mass value="0.055721"/>
+      <inertia ixx="7.436440e-06" ixy="1.103230e-07" ixz="-4.448752e-10"
+               iyy="1.201054e-05" iyz="-3.696328e-10" izz="1.401069e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo_7.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="PPS"/>
+    </visual>
+    <collision>
+      <origin xyz="0.000000 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_ST3215_Servo_7_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_LINKAGE_2">
+    <inertial>
+      <origin xyz="-0.000074 -0.006850 0.015264" rpy="0 0 0"/>
+      <mass value="0.028920"/>
+      <inertia ixx="3.472668e-06" ixy="2.710505e-20" ixz="-2.000900e-08"
+               iyy="3.171127e-06" iyz="-2.032879e-20" izz="1.000000e-06"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.135000 0.012350 -0.064846" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_LINKAGE_2.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.135000 0.012350 -0.064846" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_LINKAGE_2_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_BACK_PUSHER_2">
+    <inertial>
+      <origin xyz="-0.007343 -0.018627 0.020097" rpy="0 0 0"/>
+      <mass value="0.090152"/>
+      <inertia ixx="5.589585e-05" ixy="-5.631638e-08" ixz="3.739027e-06"
+               iyy="2.972674e-05" iyz="6.972420e-07" izz="3.155730e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.145000 0.001000 -0.050000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_BACK_PUSHER_2.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.145000 0.001000 -0.050000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_BACK_PUSHER_2_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="Hand_FINGERTIP_1_2">
+    <inertial>
+      <origin xyz="0.006129 -0.012864 0.019053" rpy="0 0 0"/>
+      <mass value="0.178882"/>
+      <inertia ixx="5.317752e-05" ixy="-6.741018e-07" ixz="4.420193e-06"
+               iyy="3.501392e-05" iyz="4.899360e-06" izz="2.709692e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.007838 -0.006730 -0.052018" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_FINGERTIP_1_2.dae" scale="1 1 1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.007838 -0.006730 -0.052018" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://Hand_description/meshes/Hand/Hand_FINGERTIP_1_2_collision.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="Rigid_1" type="fixed">
+    <parent link="base_link"/>
+    <child link="MOTOR_BASE_HOLDER_1"/>
+    <origin xyz="-0.005000 0.026570 -0.073998" rpy="-1.570796 -0.000000 0.000000"/>
+  </joint>
+
+  <joint name="Rigid_2" type="fixed">
+    <parent link="base_link"/>
+    <child link="MOTOR_BASE_HOLDER_2"/>
+    <origin xyz="-0.005000 0.026570 -0.009998" rpy="-1.570796 -0.000000 0.000000"/>
+  </joint>
+
+  <joint name="Rigid_5" type="fixed">
+    <parent link="base_link"/>
+    <child link="Hand_ST3215_Servo_3"/>
+    <origin xyz="0.037733 -0.008050 -0.014697" rpy="3.141593 0.000000 3.141593"/>
+  </joint>
+
+  <joint name="Rigid_3" type="fixed">
+    <parent link="MOTOR_BASE_HOLDER_1"/>
+    <child link="Hand_ST3215_Servo"/>
+    <origin xyz="0.038733 -0.008050 -0.014697" rpy="3.141593 0.000000 3.141593"/>
+  </joint>
+
+  <joint name="Rigid_4" type="fixed">
+    <parent link="MOTOR_BASE_HOLDER_2"/>
+    <child link="Hand_ST3215_Servo_2"/>
+    <origin xyz="0.038733 -0.008050 -0.014697" rpy="3.141593 0.000000 3.141593"/>
+  </joint>
+
+  <joint name="Revolute_6" type="revolute">
+    <parent link="Hand_ST3215_Servo_3"/>
+    <child link="MOTOR_BASE_HOLDER_THUMB"/>
+    <origin xyz="-0.000000 -0.037050 -0.000000" rpy="-1.473858 0.055821 -2.091687"/>
+    <axis xyz="-0.866025 -0.000000 -0.500000"/>
+    <limit lower="-1.570796" upper="1.570796" effort="100.0" velocity="1.00"/>
+  </joint>
+
+  <joint name="Revolute_15" type="revolute">
+    <parent link="Hand_ST3215_Servo"/>
+    <child link="MOTOR_SECOND_JOINT_HOLDER"/>
+    <origin xyz="-0.000000 -0.001000 -0.000000" rpy="-3.141593 -0.059969 0.000000"/>
+    <axis xyz="0.000000 1.000000 -0.000000"/>
+    <!-- Limits re-referenced to the assembled zero pose (exporter wrote them pi-shifted) -->
+    <limit lower="-0.174533" upper="2.094395" effort="100.0" velocity="1.00"/>
+  </joint>
+
+  <joint name="Revolute_17" type="revolute">
+    <parent link="Hand_ST3215_Servo_2"/>
+    <child link="MOTOR_FIRST_JOINT_HOLDER"/>
+    <origin xyz="-0.000000 -0.037250 -0.000000" rpy="3.141593 0.000000 -0.000000"/>
+    <axis xyz="-0.000000 -1.000000 0.000000"/>
+    <limit lower="-2.094395" upper="0.174533" effort="100.0" velocity="1.00"/>
+  </joint>
+
+  <joint name="Rigid_9" type="fixed">
+    <parent link="MOTOR_BASE_HOLDER_THUMB"/>
+    <child link="Hand_ST3215_Servo_4"/>
+    <origin xyz="-0.067095 -0.019463 0.052481" rpy="0.000000 0.000000 3.141593"/>
+  </joint>
+
+  <joint name="Rigid_10" type="fixed">
+    <parent link="MOTOR_SECOND_JOINT_HOLDER"/>
+    <child link="Hand_ST3215_Servo_5"/>
+    <origin xyz="0.000000 0.037100 0.050056" rpy="0.000000 -1.570796 0.000000"/>
+  </joint>
+
+  <joint name="Revolute_19" type="continuous">
+    <parent link="MOTOR_SECOND_JOINT_HOLDER"/>
+    <child link="Hand_LINKAGE"/>
+    <origin xyz="0.010000 0.025050 0.065056" rpy="0.000000 -0.349066 3.141593"/>
+    <axis xyz="0.000000 -1.000000 0.000000"/>
+    <limit effort="100.0" velocity="1.00"/>
+  </joint>
+
+  <joint name="Rigid_11" type="fixed">
+    <parent link="MOTOR_FIRST_JOINT_HOLDER"/>
+    <child link="Hand_ST3215_Servo_6"/>
+    <origin xyz="0.000000 0.001050 0.050056" rpy="-0.000000 -1.570796 0.000000"/>
+  </joint>
+
+  <joint name="Revolute_27" type="continuous">
+    <parent link="MOTOR_FIRST_JOINT_HOLDER"/>
+    <child link="Hand_LINKAGE_3"/>
+    <origin xyz="0.010000 -0.025300 0.065056" rpy="0.000000 -0.535148 3.141593"/>
+    <axis xyz="-0.000000 1.000000 -0.000000"/>
+    <limit effort="100.0" velocity="1.00"/>
+  </joint>
+
+  <joint name="Revolute_14" type="revolute">
+    <parent link="Hand_ST3215_Servo_4"/>
+    <child link="MOTOR_THUMB_JOINT_HOLDER"/>
+    <origin xyz="0.000000 -0.037050 -0.000000" rpy="-0.000000 0.781790 -0.000000"/>
+    <axis xyz="0.000000 1.000000 0.000000"/>
+    <limit lower="-1.570796" upper="1.570796" effort="100.0" velocity="1.00"/>
+  </joint>
+
+  <joint name="Revolute_18" type="revolute">
+    <parent link="Hand_ST3215_Servo_5"/>
+    <child link="Hand_BACK_PUSHER"/>
+    <origin xyz="-0.000000 -0.001000 -0.000000" rpy="-3.141593 1.340573 -3.141593"/>
+    <axis xyz="0.000000 -1.000000 0.000000"/>
+    <limit lower="-1.832596" upper="0.174533" effort="100.0" velocity="1.00"/>
+  </joint>
+
+  <joint name="revolute_1" type="continuous">
+    <parent link="Hand_LINKAGE"/>
+    <child link="Hand_FINGERTIP_1"/>
+    <origin xyz="0.000000 0.014100 0.030154" rpy="-0.000000 0.230712 0.000000"/>
+    <axis xyz="0.000000 1.000000 0.000000"/>
+    <limit effort="100.0" velocity="1.00"/>
+  </joint>
+
+  <joint name="Revolute_26" type="revolute">
+    <parent link="Hand_ST3215_Servo_6"/>
+    <child link="Hand_BACK_PUSHER_3"/>
+    <origin xyz="0.000000 -0.037250 -0.000000" rpy="-3.141593 1.221730 -3.141593"/>
+    <axis xyz="-0.000000 1.000000 0.000000"/>
+    <limit lower="-0.174533" upper="1.658063" effort="100.0" velocity="1.00"/>
+  </joint>
+
+  <joint name="Revolute" type="continuous">
+    <parent link="Hand_LINKAGE_3"/>
+    <child link="FINGERTIP_2"/>
+    <origin xyz="-0.000000 -0.000000 0.030154" rpy="3.141593 0.319579 -0.000000"/>
+    <axis xyz="-0.000000 -1.000000 -0.000000"/>
+    <limit effort="100.0" velocity="1.00"/>
+  </joint>
+
+  <joint name="Rigid_13" type="fixed">
+    <parent link="MOTOR_THUMB_JOINT_HOLDER"/>
+    <child link="Hand_ST3215_Servo_7"/>
+    <origin xyz="-0.000000 0.037100 0.050056" rpy="0.000000 -1.570796 0.000000"/>
+  </joint>
+
+  <joint name="Revolute_23" type="continuous">
+    <parent link="MOTOR_THUMB_JOINT_HOLDER"/>
+    <child link="Hand_LINKAGE_2"/>
+    <origin xyz="0.010000 0.025050 0.065056" rpy="0.000000 0.150350 -0.000000"/>
+    <axis xyz="-0.000000 1.000000 -0.000000"/>
+    <limit effort="100.0" velocity="1.00"/>
+  </joint>
+
+  <joint name="Revolute_22" type="revolute">
+    <parent link="Hand_ST3215_Servo_7"/>
+    <child link="Hand_BACK_PUSHER_2"/>
+    <origin xyz="-0.000000 -0.001000 -0.000000" rpy="-3.141593 1.470661 -3.141593"/>
+    <axis xyz="0.000000 -1.000000 -0.000000"/>
+    <!-- Limits re-referenced to the assembled zero pose (exporter wrote them pi-shifted) -->
+    <limit lower="-1.658063" upper="0.174533" effort="100.0" velocity="1.00"/>
+  </joint>
+
+  <joint name="revolute" type="continuous">
+    <parent link="Hand_LINKAGE_2"/>
+    <child link="Hand_FINGERTIP_1_2"/>
+    <origin xyz="0.000000 -0.014100 0.030154" rpy="0.000000 0.109373 -3.141593"/>
+    <axis xyz="0.000000 1.000000 -0.000000"/>
+    <limit effort="100.0" velocity="1.00"/>
+  </joint>
+
+  <!-- ROS 2 control: generated generic system -->
+  <ros2_control name="Hand_system" type="system">
+    <hardware>
+      <plugin>mock_components/GenericSystem</plugin>
+      <param name="cmd_topic">sim/Hand_system/cmd</param>
+      <param name="state_topic">sim/Hand_system/state</param>
+    </hardware>
+
+    <joint name="Revolute">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="Revolute_14">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="Revolute_15">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="Revolute_17">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="Revolute_18">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="Revolute_19">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="Revolute_22">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="Revolute_23">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="Revolute_26">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="Revolute_27">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="Revolute_6">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="revolute">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="revolute_1">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+  </ros2_control>
+
+</robot>

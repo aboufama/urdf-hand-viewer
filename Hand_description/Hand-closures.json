@@ -1,0 +1,32 @@
+{
+  "robot": "Hand",
+  "closures": [
+    {
+      "name": "finger_second_loop",
+      "linkA": "Hand_BACK_PUSHER",
+      "anchorA": [-0.005, -0.0302, 0.045],
+      "linkB": "Hand_FINGERTIP_1",
+      "anchorB": [0.014999, 0.00505, -0.000154],
+      "passiveJoints": ["Revolute_19", "revolute_1"],
+      "enabled": true
+    },
+    {
+      "name": "finger_first_loop",
+      "linkA": "FINGERTIP_2",
+      "anchorA": [0.014999, 0.01915, 0.000154],
+      "linkB": "Hand_BACK_PUSHER_3",
+      "anchorB": [-0.005, 0.03005, 0.045],
+      "passiveJoints": ["Revolute_27", "Revolute"],
+      "enabled": true
+    },
+    {
+      "name": "thumb_loop",
+      "linkA": "Hand_BACK_PUSHER_2",
+      "anchorA": [-0.005, -0.0302, 0.045],
+      "linkB": "Hand_FINGERTIP_1_2",
+      "anchorB": [0.014999, 0.00505, -0.000154],
+      "passiveJoints": ["Revolute_23", "revolute"],
+      "enabled": true
+    }
+  ]
+}

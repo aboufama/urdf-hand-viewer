@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URDF Hand Viewer — closed-loop linkage solver</title>
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="toolbar">
+      <span id="title">URDF Hand Viewer</span>
+      <button id="btn-hand" title="Load the Hand robot with its back-pusher loops connected">Load hand</button>
+      <button id="btn-load" title="Load a folder containing a .urdf and its meshes">Load URDF folder</button>
+      <button id="btn-demo" title="Load the built-in 3-finger linkage hand">Load demo hand</button>
+      <button id="btn-zero">Zero pose</button>
+      <span class="spacer"></span>
+      <label class="chk"><input type="checkbox" id="chk-solve" checked /> Solve closures</label>
+      <label class="chk"><input type="checkbox" id="chk-markers" checked /> Show anchors</label>
+      <span id="status"></span>
+    </header>
+
+    <aside id="sidebar">
+      <section class="panel" id="panel-model">
+        <h2>Model</h2>
+        <div class="row orient-row">
+          <label title="Rotate the whole model (deg) to match how the real hand sits">Rotate X/Y/Z</label>
+          <input type="number" id="rot-x" step="15" value="0" />
+          <input type="number" id="rot-y" step="15" value="0" />
+          <input type="number" id="rot-z" step="15" value="0" />
+          <button id="btn-fit" class="small" title="Re-frame the camera">Fit</button>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-joints">
+        <h2>Joints</h2>
+        <div class="row" id="drive-all-row" hidden>
+          <label>Drive all actuated</label>
+          <input type="range" id="drive-all" min="0" max="1" step="0.001" value="0" />
+        </div>
+        <div id="joint-list"><p class="hint">Load a URDF to begin. Drag &amp; drop a folder anywhere, or use the buttons above.</p></div>
+      </section>
+
+      <section class="panel" id="panel-hardware">
+        <h2>Hardware <span class="sub">(ST3215 bus over USB)</span></h2>
+        <p class="hint">Drives the Waveshare/Feetech servos through a USB bus adapter. Commands go out as broadcast sync-writes (no reply traffic, so no bus collisions) and are clamped to the joint limits with bounded speed/acceleration.</p>
+        <div class="row">
+          <button id="btn-connect">Connect USB</button>
+          <label class="chk"><input type="checkbox" id="chk-torque" checked /> Torque</label>
+          <label class="chk">Speed <input type="number" id="hw-speed" value="800" min="50" max="3000" step="50" /></label>
+          <span id="hw-status">disconnected</span>
+        </div>
+        <div id="hw-map"></div>
+      </section>
+
+      <section class="panel" id="panel-closures">
+        <h2>Closures <span class="sub">(reconnected loops)</span></h2>
+        <p class="hint">A closure pins a point on one link to a point on another — the joint you had to disconnect for URDF export. Listed passive joints are solved so the points coincide.</p>
+        <div id="closure-list"></div>
+        <div class="row">
+          <button id="btn-add-closure" disabled>+ Add closure</button>
+          <button id="btn-export-closures" disabled>Export JSON</button>
+          <button id="btn-import-closures" disabled>Import JSON</button>
+        </div>
+      </section>
+    </aside>
+
+    <main id="viewport"></main>
+    <div id="pick-banner" hidden>Click a point on the robot to set the anchor (Esc to cancel)</div>
+  </div>
+
+  <input type="file" id="file-folder" webkitdirectory multiple hidden />
+  <input type="file" id="file-json" accept=".json" hidden />
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
