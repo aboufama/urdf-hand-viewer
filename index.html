@@ -16,7 +16,7 @@
       <button id="btn-zero">Zero pose</button>
       <span class="spacer"></span>
       <label class="chk"><input type="checkbox" id="chk-solve" checked /> Solve closures</label>
-      <label class="chk" title="Reject any move that would overlap parts"><input type="checkbox" id="chk-collide" checked /> Block collisions</label>
+      <label class="chk" title="Reject any move that would overlap parts"><input type="checkbox" id="chk-collide" /> Block collisions</label>
       <label class="chk"><input type="checkbox" id="chk-markers" checked /> Show anchors</label>
       <span id="status"></span>
     </header>
@@ -61,7 +61,10 @@
           <button id="btn-track">Start camera</button>
           <span id="track-status"></span>
         </div>
-        <video id="track-video" muted playsinline></video>
+        <div id="track-wrap">
+          <video id="track-video" muted playsinline></video>
+          <canvas id="track-canvas"></canvas>
+        </div>
       </section>
 
       <section class="panel" id="panel-closures">

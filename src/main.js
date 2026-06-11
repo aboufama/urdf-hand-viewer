@@ -839,29 +839,43 @@ $('chk-torque').addEventListener('change', async (e) => {
 
 const tracker = new HandTracker();
 
-// curl 0..1 → fraction of each joint's closing side (the larger limit)
-const TRACK_MAP = {
-  middle: ['Revolute_15', 'Revolute_18'],
-  index: ['Revolute_17', 'Revolute_26'],
-  thumb: ['Revolute_14', 'Revolute_22'],
+// channel 0..1 → joint radians [open, closed]. The preview video is
+// mirrored, which flips a left hand into right-hand layout — index lands on
+// finger 1 (Revolute_15 chain) and middle on finger 2. Thumb curl drives the
+// base bend plus a *short* pusher stroke (full stroke folds the tip onto
+// itself); thumb lateral adduction drives Revolute_6.
+const TRACK_JOINTS = {
+  index: { Revolute_15: [0, 2.09], Revolute_18: [0, -1.83] },
+  middle: { Revolute_17: [0, -2.09], Revolute_26: [0, 1.65] },
+  thumb: { Revolute_14: [0, 1.57], Revolute_22: [0.17, -0.7] },
+  lat: { Revolute_6: [0, -1.2] },
 };
 
-function closingTarget(j) {
-  const [lo, hi] = jointRange(j);
-  return Math.abs(lo) > Math.abs(hi) ? lo : hi;
-}
+// Exponential smoothing with a slew-rate cap: glitches and hand-swaps can't
+// snap the pose (and can't slam parts together). When the hand leaves the
+// frame the targets fall to 0, easing everything home to the rest pose.
+const trackState = { index: 0, middle: 0, thumb: 0, lat: 0 };
+const TRACK_ALPHA = 0.35;
+const TRACK_MAX_STEP = 0.08;
 
 let lastTrackApply = 0;
 
-function applyCurls(curls) {
+function applyTracking(channels) {
   if (!state.robot) return;
   const now = performance.now();
   if (now - lastTrackApply < 50) return; // ~20 Hz is plenty
   lastTrackApply = now;
-  for (const [digit, jointNames] of Object.entries(TRACK_MAP)) {
-    for (const name of jointNames) {
+
+  for (const key of Object.keys(trackState)) {
+    const target = channels ? channels[key] : 0; // hand lost → rest pose
+    const step = TRACK_ALPHA * (target - trackState[key]);
+    trackState[key] += Math.max(-TRACK_MAX_STEP, Math.min(TRACK_MAX_STEP, step));
+  }
+
+  for (const [key, joints] of Object.entries(TRACK_JOINTS)) {
+    for (const [name, [open, closed]] of Object.entries(joints)) {
       const j = state.robot.joints[name];
-      if (j) j.setJointValue(curls[digit] * closingTarget(j));
+      if (j) j.setJointValue(open + trackState[key] * (closed - open));
     }
   }
   refreshJointWidgets({ syncAll: true });
@@ -869,18 +883,18 @@ function applyCurls(curls) {
 }
 
 $('btn-track').addEventListener('click', async () => {
-  const video = $('track-video');
+  const wrap = $('track-wrap');
   if (tracker.running) {
     tracker.stop();
-    video.classList.remove('show');
+    wrap.classList.remove('show');
     $('btn-track').textContent = 'Start camera';
     $('track-status').textContent = '';
     return;
   }
   try {
     $('track-status').textContent = 'loading model…';
-    await tracker.start(video, applyCurls);
-    video.classList.add('show');
+    await tracker.start($('track-video'), $('track-canvas'), applyTracking);
+    wrap.classList.add('show');
     $('btn-track').textContent = 'Stop';
     $('track-status').textContent = 'tracking';
   } catch (err) {
