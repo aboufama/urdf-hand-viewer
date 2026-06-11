@@ -16,6 +16,7 @@
       <button id="btn-zero">Zero pose</button>
       <span class="spacer"></span>
       <label class="chk"><input type="checkbox" id="chk-solve" checked /> Solve closures</label>
+      <label class="chk" title="Reject any move that would overlap parts"><input type="checkbox" id="chk-collide" checked /> Block collisions</label>
       <label class="chk"><input type="checkbox" id="chk-markers" checked /> Show anchors</label>
       <span id="status"></span>
     </header>
@@ -51,6 +52,16 @@
           <span id="hw-status">disconnected</span>
         </div>
         <div id="hw-map"></div>
+      </section>
+
+      <section class="panel" id="panel-tracking">
+        <h2>Hand tracking <span class="sub">(camera, glove stand-in)</span></h2>
+        <p class="hint">Tracks your thumb, index and middle finger with the webcam and curls the three digits to match. Every tracked pose is collision-checked before it is applied or sent to the servos.</p>
+        <div class="row">
+          <button id="btn-track">Start camera</button>
+          <span id="track-status"></span>
+        </div>
+        <video id="track-video" muted playsinline></video>
       </section>
 
       <section class="panel" id="panel-closures">

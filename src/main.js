@@ -12,6 +12,8 @@ import {
 import { DEMO_URDF, DEMO_CLOSURES } from './demoHand.js';
 import { HAND_CLOSURES, isHandRobot } from './handClosures.js';
 import { ServoBus, radToTicks, CENTER_TICKS } from './servo.js';
+import { CollisionChecker } from './collision.js';
+import { HandTracker } from './tracking.js';
 
 const $ = (id) => document.getElementById(id);
 const viewport = $('viewport');
@@ -24,7 +26,10 @@ const state = {
   solver: null,
   closures: [], // plain JSON specs (see solver.js)
   pick: null, // {closureIndex, side} while pick mode is active
+  collision: null,
+  lastGoodPose: null, // joint values to roll back to when a move collides
 };
+window.__state = state; // console/debug access
 
 // ---------------------------------------------------------------------------
 // Robot loading
@@ -46,6 +51,8 @@ function clearRobot() {
   state.robot = null;
   state.solver = null;
   state.closures = [];
+  state.collision = null;
+  state.lastGoodPose = null;
 }
 
 function adoptRobot(robot, { closures = null } = {}) {
@@ -84,6 +91,13 @@ function adoptRobot(robot, { closures = null } = {}) {
   buildJointUI();
   buildClosureUI();
   buildHardwareUI();
+
+  // Collision guard: baseline after the loops are solved in the load pose
+  if (state.solver) state.solver.solve();
+  state.collision = new CollisionChecker(robot);
+  state.collision.captureBaseline();
+  state.lastGoodPose = snapshotPose();
+
   resolveAndRefresh();
   setStatus(`Loaded ${state.robotName} — ${Object.keys(robot.joints).length} joints`);
 }
@@ -322,11 +336,11 @@ function buildJointUI() {
   }
 }
 
-function refreshJointWidgets() {
+function refreshJointWidgets({ syncAll = false } = {}) {
   const passive = passiveNames();
   for (const [name, w] of jointWidgets) {
     w.value.textContent = formatJointValue(w.joint);
-    if (passive.has(name)) w.slider.value = jointValue(w.joint);
+    if (syncAll || passive.has(name)) w.slider.value = jointValue(w.joint);
   }
 }
 
@@ -357,6 +371,20 @@ $('btn-zero').addEventListener('click', () => {
 // ---------------------------------------------------------------------------
 // Solve + refresh
 
+function snapshotPose() {
+  const pose = {};
+  for (const j of movableJoints()) pose[j.name] = jointValue(j);
+  return pose;
+}
+
+function restorePose(pose) {
+  for (const j of movableJoints()) {
+    if (pose[j.name] !== undefined) j.setJointValue(pose[j.name]);
+  }
+  if (state.solver && $('chk-solve').checked) state.solver.solve();
+  else state.robot.updateMatrixWorld(true);
+}
+
 function resolveAndRefresh() {
   if (!state.robot) return;
   if (state.solver && $('chk-solve').checked) {
@@ -364,6 +392,22 @@ function resolveAndRefresh() {
   } else {
     state.robot.updateMatrixWorld(true);
   }
+
+  // Collision guard: a move that overlaps parts is rolled back entirely —
+  // it never reaches the screen pose for long, nor the servos at all.
+  if (state.collision && $('chk-collide').checked) {
+    const hits = state.collision.check();
+    if (hits.length) {
+      if (state.lastGoodPose) restorePose(state.lastGoodPose);
+      setStatus(`Blocked: ${hits.map(([a, b]) => `${a} ↔ ${b}`).join(', ')}`, true);
+      refreshJointWidgets({ syncAll: true });
+      refreshClosureGaps();
+      return; // no servo push
+    }
+    state.lastGoodPose = snapshotPose();
+    if ($('status').classList.contains('error')) setStatus('');
+  }
+
   refreshJointWidgets();
   refreshClosureGaps();
   schedulePosePush();
@@ -785,6 +829,63 @@ $('chk-torque').addEventListener('change', async (e) => {
     if (e.target.checked) await pushPose();
   } catch (err) {
     setHwStatus(err.message, true);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Camera hand tracking (glove stand-in): thumb + index + middle curls drive
+// the three digits. Applied through resolveAndRefresh, so the collision
+// guard vets every tracked pose before it shows or reaches the servos.
+
+const tracker = new HandTracker();
+
+// curl 0..1 → fraction of each joint's closing side (the larger limit)
+const TRACK_MAP = {
+  middle: ['Revolute_15', 'Revolute_18'],
+  index: ['Revolute_17', 'Revolute_26'],
+  thumb: ['Revolute_14', 'Revolute_22'],
+};
+
+function closingTarget(j) {
+  const [lo, hi] = jointRange(j);
+  return Math.abs(lo) > Math.abs(hi) ? lo : hi;
+}
+
+let lastTrackApply = 0;
+
+function applyCurls(curls) {
+  if (!state.robot) return;
+  const now = performance.now();
+  if (now - lastTrackApply < 50) return; // ~20 Hz is plenty
+  lastTrackApply = now;
+  for (const [digit, jointNames] of Object.entries(TRACK_MAP)) {
+    for (const name of jointNames) {
+      const j = state.robot.joints[name];
+      if (j) j.setJointValue(curls[digit] * closingTarget(j));
+    }
+  }
+  refreshJointWidgets({ syncAll: true });
+  resolveAndRefresh();
+}
+
+$('btn-track').addEventListener('click', async () => {
+  const video = $('track-video');
+  if (tracker.running) {
+    tracker.stop();
+    video.classList.remove('show');
+    $('btn-track').textContent = 'Start camera';
+    $('track-status').textContent = '';
+    return;
+  }
+  try {
+    $('track-status').textContent = 'loading model…';
+    await tracker.start(video, applyCurls);
+    video.classList.add('show');
+    $('btn-track').textContent = 'Stop';
+    $('track-status').textContent = 'tracking';
+  } catch (err) {
+    console.error(err);
+    $('track-status').textContent = err.message;
   }
 });
 
