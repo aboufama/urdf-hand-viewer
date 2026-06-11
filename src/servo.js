@@ -23,6 +23,7 @@ const SYNC_WRITE = 0x83;
 const BROADCAST_ID = 0xfe;
 const ADDR_TORQUE = 40;
 const ADDR_ACC = 41; // ACC + GOAL_POSITION + GOAL_TIME + GOAL_SPEED in one block
+const ADDR_TORQUE_LIMIT = 48; // RAM, 0-1000 = 0-100% of stall torque
 
 export class ServoBus {
   constructor() {
@@ -86,20 +87,39 @@ export class ServoBus {
   }
 
   /**
+   * Cap each servo's output torque (RAM register, resets on power cycle).
+   * Keep this low while testing — a stalled linkage at a few percent of
+   * stall torque just stops instead of stripping gears or cracking parts.
+   * @param {{id: number, fraction: number}[]} rows fraction 0..1
+   */
+  async setTorqueLimit(rows) {
+    await this.syncWrite(
+      ADDR_TORQUE_LIMIT,
+      2,
+      rows.map(({ id, fraction }) => {
+        const v = Math.round(Math.min(1, Math.max(0.03, fraction)) * 1000);
+        return { id, data: [v & 0xff, (v >> 8) & 0xff] };
+      }),
+    );
+  }
+
+  /**
    * Command positions for several servos in one collision-free packet.
    * @param {{id: number, ticks: number, speed?: number, acc?: number}[]} targets
    *   ticks 0..4095; speed in ticks/s (bounded); acc in 100 ticks/s² units.
    */
   async writePositions(targets) {
-    const rows = targets.map(({ id, ticks, speed = 800, acc = 50 }) => {
-      const p = Math.round(Math.min(4095, Math.max(0, ticks)));
-      const v = Math.round(Math.min(3000, Math.max(50, speed)));
-      const a = Math.round(Math.min(150, Math.max(1, acc)));
-      return {
-        id,
-        data: [a, p & 0xff, (p >> 8) & 0xff, 0, 0, v & 0xff, (v >> 8) & 0xff],
-      };
-    });
+    const rows = targets
+      .filter(({ id, ticks }) => Number.isFinite(ticks) && Number.isFinite(id))
+      .map(({ id, ticks, speed = 800, acc = 50 }) => {
+        const p = Math.round(Math.min(4095, Math.max(0, ticks)));
+        const v = Math.round(Math.min(3000, Math.max(50, speed)));
+        const a = Math.round(Math.min(150, Math.max(1, acc)));
+        return {
+          id,
+          data: [a, p & 0xff, (p >> 8) & 0xff, 0, 0, v & 0xff, (v >> 8) & 0xff],
+        };
+      });
     await this.syncWrite(ADDR_ACC, 7, rows);
   }
 }

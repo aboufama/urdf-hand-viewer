@@ -14,6 +14,7 @@ import { HAND_CLOSURES, isHandRobot } from './handClosures.js';
 import { ServoBus, radToTicks, CENTER_TICKS } from './servo.js';
 import { CollisionChecker } from './collision.js';
 import { HandTracker } from './tracking.js';
+import { TipRetargeter } from './retarget.js';
 
 const $ = (id) => document.getElementById(id);
 const viewport = $('viewport');
@@ -53,6 +54,7 @@ function clearRobot() {
   state.closures = [];
   state.collision = null;
   state.lastGoodPose = null;
+  state.retarget = null;
 }
 
 function adoptRobot(robot, { closures = null } = {}) {
@@ -88,16 +90,22 @@ function adoptRobot(robot, { closures = null } = {}) {
   $('btn-import-closures').disabled = false;
   $('drive-all-row').hidden = false;
 
-  buildJointUI();
-  buildClosureUI();
-  buildHardwareUI();
+  // Fingertip retargeting for camera/glove control (no-op for other robots).
+  // Built first: it locks the passive linkage joints to their real ranges,
+  // which the joint panel and pose snapshots below must see.
+  if (state.solver) state.solver.solve();
+  state.retarget = new TipRetargeter(robot, state.solver);
+  tipTargets = null;
+  setTargetMarkersVisible(false);
 
   // Collision guard: baseline after the loops are solved in the load pose
-  if (state.solver) state.solver.solve();
   state.collision = new CollisionChecker(robot);
   state.collision.captureBaseline();
   state.lastGoodPose = snapshotPose();
 
+  buildJointUI();
+  buildClosureUI();
+  buildHardwareUI();
   resolveAndRefresh();
   setStatus(`Loaded ${state.robotName} — ${Object.keys(robot.joints).length} joints`);
 }
@@ -127,6 +135,7 @@ function applyOrientation(deg) {
 
 for (const id of ['rot-x', 'rot-y', 'rot-z']) {
   $(id).addEventListener('change', () => {
+    if (!state.robot) return;
     const deg = ['rot-x', 'rot-y', 'rot-z'].map((n) => parseFloat($(n).value) || 0);
     applyOrientation(deg);
     localStorage.setItem(orientationKey(), JSON.stringify(deg));
@@ -444,7 +453,16 @@ function loadSavedClosures(name = undefined) {
 function closuresChanged({ rebuildJoints = true } = {}) {
   state.solver.setClosures(state.closures);
   saveClosures();
-  if (rebuildJoints) buildJointUI();
+  if (rebuildJoints) {
+    // Structural change: the passive set moved, so the retargeter's cached
+    // geometry and the hardware map are stale — rebuild both.
+    if (state.robot) {
+      state.retarget = new TipRetargeter(state.robot, state.solver);
+      tipTargets = null;
+    }
+    buildJointUI();
+    buildHardwareUI();
+  }
   resolveAndRefresh();
 }
 
@@ -686,7 +704,10 @@ function loadServoMap() {
   } catch {}
   const map = {};
   actuatedJoints().forEach((j, i) => {
-    map[j.name] = { id: i + 1, sign: 1, center: CENTER_TICKS, enabled: true, ...saved[j.name] };
+    const cfg = { id: i + 1, sign: 1, center: CENTER_TICKS, enabled: true, ...saved[j.name] };
+    if (!Number.isFinite(cfg.center)) cfg.center = CENTER_TICKS; // heal old NaN/null saves
+    if (!Number.isFinite(cfg.id)) cfg.id = i + 1;
+    map[j.name] = cfg;
   });
   return map;
 }
@@ -747,8 +768,16 @@ function buildHardwareUI() {
       cfg.enabled = enable.checked;
       cfg.id = parseInt(id.value, 10) || 1;
       cfg.sign = invChk.checked ? -1 : 1;
-      cfg.center = parseInt(center.value, 10) ?? CENTER_TICKS;
+      const c = parseInt(center.value, 10);
+      cfg.center = Number.isFinite(c) ? c : CENTER_TICKS;
       saveServoMap(servoMap);
+      // A row enabled or re-ID'd after connect must get its torque cap and
+      // enable state before any pose can reach it at power-on defaults.
+      if (bus.connected) {
+        pushTorqueLimit()
+          .then(() => ($('chk-torque').checked ? setAllTorque(true) : undefined))
+          .catch((err) => setHwStatus(err.message, true));
+      }
       schedulePosePush();
     };
     for (const el of [enable, id, invChk, center]) el.addEventListener('change', update);
@@ -790,11 +819,30 @@ async function pushPose() {
 }
 
 async function setAllTorque(on) {
-  const rows = actuatedJoints()
-    .filter((j) => servoMap[j.name]?.enabled)
-    .map((j) => ({ id: servoMap[j.name].id, on }));
+  // Torque OFF goes to every mapped servo (even rows since disabled or
+  // demoted to passive) so nothing is left holding after disconnect.
+  const rows = Object.values(servoMap)
+    .filter((cfg) => (on ? cfg.enabled : true))
+    .map((cfg) => ({ id: cfg.id, on }));
   if (rows.length) await bus.setTorque(rows);
 }
+
+const TORQUE_PCT_KEY = 'urdf-hand-viewer:torque-pct';
+$('hw-torque').value = parseInt(localStorage.getItem(TORQUE_PCT_KEY), 10) || 15;
+
+async function pushTorqueLimit() {
+  if (!bus.connected) return;
+  const fraction = (parseInt($('hw-torque').value, 10) || 15) / 100;
+  const rows = actuatedJoints()
+    .filter((j) => servoMap[j.name]?.enabled)
+    .map((j) => ({ id: servoMap[j.name].id, fraction }));
+  if (rows.length) await bus.setTorqueLimit(rows);
+}
+
+$('hw-torque').addEventListener('change', () => {
+  localStorage.setItem(TORQUE_PCT_KEY, parseInt($('hw-torque').value, 10) || 15);
+  pushTorqueLimit().catch((err) => setHwStatus(err.message, true));
+});
 
 $('btn-connect').addEventListener('click', async () => {
   try {
@@ -812,6 +860,7 @@ $('btn-connect').addEventListener('click', async () => {
     await bus.connect();
     $('btn-connect').textContent = 'Disconnect';
     setHwStatus('connected');
+    await pushTorqueLimit(); // cap torque before anything can move
     if ($('chk-torque').checked) {
       await setAllTorque(true);
       await pushPose();
@@ -839,67 +888,115 @@ $('chk-torque').addEventListener('change', async (e) => {
 
 const tracker = new HandTracker();
 
-// channel 0..1 → joint radians [open, closed]. The preview video is
-// mirrored, which flips a left hand into right-hand layout — index lands on
-// finger 1 (Revolute_15 chain) and middle on finger 2. Thumb curl drives the
-// base bend plus a *short* pusher stroke (full stroke folds the tip onto
-// itself); thumb lateral adduction drives Revolute_6.
-const TRACK_JOINTS = {
-  index: { Revolute_15: [0, 2.09], Revolute_18: [0, -1.83] },
-  middle: { Revolute_17: [0, -2.09], Revolute_26: [0, 1.65] },
-  thumb: { Revolute_14: [0, 1.57], Revolute_22: [0.17, -0.7] },
-  lat: { Revolute_6: [0, -1.2] },
-};
+// Fingertip retargeting (retarget.js): human tip positions map into the
+// robot's palm frame — per-digit scaled by robot/human digit length — and
+// per-digit IK drives the actuated joints so the simulated tips follow.
+// Thumb laterality is part of the 3D target, so Revolute_6 comes out of the
+// IK with the geometrically correct sign.
 
-// Exponential smoothing with a slew-rate cap: glitches and hand-swaps can't
-// snap the pose (and can't slam parts together). When the hand leaves the
-// frame the targets fall to 0, easing everything home to the rest pose.
-const trackState = { index: 0, middle: 0, thumb: 0, lat: 0 };
-const TRACK_ALPHA = 0.35;
-const TRACK_MAX_STEP = 0.08;
+// Cartesian smoothing with a slew cap (meters/update): glitches can't snap
+// the pose. When the hand leaves the frame, targets ease home to rest tips.
+const TRACK_ALPHA = 0.4;
+const TRACK_MAX_STEP = 0.008;
 
+let tipTargets = null; // {index,middle,thumb: Vector3} smoothed, robot-local
 let lastTrackApply = 0;
 
-function applyTracking(channels) {
-  if (!state.robot) return;
+const targetMarkers = new Map(); // digit -> sphere shown at the IK target
+function ensureTargetMarkers() {
+  if (targetMarkers.size) return;
+  for (const [key, color] of Object.entries({ index: 0x4f8dff, middle: 0x37d3a0, thumb: 0xf08a2c })) {
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(0.004, 16, 12),
+      new THREE.MeshBasicMaterial({ color, depthTest: false, transparent: true, opacity: 0.85 }),
+    );
+    m.renderOrder = 2;
+    m.visible = false;
+    viewer.overlay.add(m);
+    targetMarkers.set(key, m);
+  }
+}
+
+function setTargetMarkersVisible(on) {
+  for (const m of targetMarkers.values()) m.visible = on;
+}
+
+function applyTracking(update) {
+  if (!state.robot || !state.retarget?.ready) return;
   const now = performance.now();
   if (now - lastTrackApply < 50) return; // ~20 Hz is plenty
   lastTrackApply = now;
 
-  for (const key of Object.keys(trackState)) {
-    const target = channels ? channels[key] : 0; // hand lost → rest pose
-    const step = TRACK_ALPHA * (target - trackState[key]);
-    trackState[key] += Math.max(-TRACK_MAX_STEP, Math.min(TRACK_MAX_STEP, step));
+  // Open-hand calibration: hold the hand extended; the captured reference
+  // makes "your open hand" map exactly to the robot's rest pose.
+  if (update && !state.retarget.calibrated) {
+    if (state.retarget.addCalibration(update.world)) {
+      $('track-status').textContent = 'tracking fingertips';
+    } else {
+      $('track-status').textContent = 'calibrating — hold your hand open';
+    }
+    return;
   }
 
-  for (const [key, joints] of Object.entries(TRACK_JOINTS)) {
-    for (const [name, [open, closed]] of Object.entries(joints)) {
-      const j = state.robot.joints[name];
-      if (j) j.setJointValue(open + trackState[key] * (closed - open));
+  const raw = update ? state.retarget.humanToTargets(update.world) : state.retarget.restTargets();
+  if (!tipTargets) {
+    tipTargets = raw;
+  } else {
+    for (const [key, target] of Object.entries(raw)) {
+      const step = target.sub(tipTargets[key]).multiplyScalar(TRACK_ALPHA);
+      if (step.length() > TRACK_MAX_STEP) step.setLength(TRACK_MAX_STEP);
+      tipTargets[key].add(step);
+    }
+  }
+
+  state.retarget.solve(tipTargets);
+  ensureTargetMarkers();
+  for (const [key, m] of targetMarkers) {
+    if (tipTargets[key]) {
+      state.robot.localToWorld(m.position.copy(tipTargets[key]));
+      m.visible = true;
     }
   }
   refreshJointWidgets({ syncAll: true });
   resolveAndRefresh();
 }
 
+let trackerStarting = false;
+
 $('btn-track').addEventListener('click', async () => {
   const wrap = $('track-wrap');
+  if (trackerStarting) return;
   if (tracker.running) {
     tracker.stop();
     wrap.classList.remove('show');
+    setTargetMarkersVisible(false);
+    tipTargets = null;
     $('btn-track').textContent = 'Start camera';
     $('track-status').textContent = '';
     return;
   }
+  trackerStarting = true;
+  $('btn-track').disabled = true;
   try {
     $('track-status').textContent = 'loading model…';
+    state.retarget?.resetCalibration();
     await tracker.start($('track-video'), $('track-canvas'), applyTracking);
     wrap.classList.add('show');
     $('btn-track').textContent = 'Stop';
-    $('track-status').textContent = 'tracking';
+    if (state.retarget?.ready) {
+      ensureTargetMarkers();
+      setTargetMarkersVisible(true);
+      $('track-status').textContent = 'show your open hand to calibrate';
+    } else {
+      $('track-status').textContent = 'no tip mapping for this robot — camera preview only';
+    }
   } catch (err) {
     console.error(err);
+    tracker.stop(); // release any partially acquired camera/model resources
     $('track-status').textContent = err.message;
+  } finally {
+    trackerStarting = false;
+    $('btn-track').disabled = false;
   }
 });
 

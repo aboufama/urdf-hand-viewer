@@ -1,9 +1,8 @@
 /**
- * Webcam hand tracking (MediaPipe HandLandmarker) reduced to four channels:
- * thumb/index/middle curl plus thumb lateral adduction, each 0 (open) to 1
- * (closed/crossed). Draws the landmark skeleton on an overlay canvas so you
- * can see what it tracks. Calls onUpdate(null) when no hand is in view.
- * Stands in for the glove until it arrives.
+ * Webcam hand tracking (MediaPipe HandLandmarker). Emits the raw landmarks
+ * each frame — image-space for the skeleton overlay, metric world-space for
+ * fingertip retargeting (see retarget.js) — or null when no hand is in
+ * view. Stands in for the glove until it arrives.
  */
 const CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
 const MODEL =
@@ -29,7 +28,7 @@ export class HandTracker {
   /**
    * @param {HTMLVideoElement} video
    * @param {HTMLCanvasElement} canvas skeleton overlay (same CSS box as video)
-   * @param {(curls: {thumb,index,middle,lat}|null) => void} onUpdate
+   * @param {(update: {image, world}|null) => void} onUpdate landmark arrays, null = no hand
    */
   async start(video, canvas, onUpdate) {
     const { FilesetResolver, HandLandmarker } = await import(
@@ -57,8 +56,9 @@ export class HandTracker {
       if (video.readyState >= 2) {
         const res = this.landmarker.detectForVideo(video, performance.now());
         const lm = res.landmarks?.[0];
+        const world = res.worldLandmarks?.[0];
         this._draw(ctx, lm);
-        onUpdate(lm ? channelsFromLandmarks(lm) : null);
+        onUpdate(lm && world ? { image: lm, world } : null);
       }
       requestAnimationFrame(loop);
     };
@@ -102,28 +102,3 @@ export class HandTracker {
   }
 }
 
-function dist(lm, a, b) {
-  return Math.hypot(lm[a].x - lm[b].x, lm[a].y - lm[b].y, lm[a].z - lm[b].z);
-}
-
-function angleAt(lm, a, b, c) {
-  const v1 = [lm[a].x - lm[b].x, lm[a].y - lm[b].y, lm[a].z - lm[b].z];
-  const v2 = [lm[c].x - lm[b].x, lm[c].y - lm[b].y, lm[c].z - lm[b].z];
-  const dot = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
-  return Math.acos(Math.min(1, Math.max(-1, dot / ((Math.hypot(...v1) * Math.hypot(...v2)) || 1))));
-}
-
-const clamp01 = (v) => Math.min(1, Math.max(0, v));
-
-function channelsFromLandmarks(lm) {
-  // lateral: thumb tip distance to index MCP, normalized by palm size
-  // (wrist -> middle MCP). Abducted/spread ≈ 0, tucked across the palm ≈ 1.
-  const palm = dist(lm, 0, 9) || 1;
-  const lat = clamp01((0.85 - dist(lm, 4, 5) / palm) / 0.55);
-  return {
-    thumb: clamp01((Math.PI - angleAt(lm, 2, 3, 4)) / 1.0),
-    index: clamp01((Math.PI - angleAt(lm, 5, 6, 8)) / 2.0),
-    middle: clamp01((Math.PI - angleAt(lm, 9, 10, 12)) / 2.0),
-    lat,
-  };
-}

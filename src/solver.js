@@ -39,6 +39,7 @@ export class ClosureSolver {
   _resolve() {
     this._resolved = [];
     const unknownSet = new Map();
+    const withJoints = [];
     for (const c of this.closures) {
       if (c.enabled === false) continue;
       const linkA = this.robot.links?.[c.linkA];
@@ -48,34 +49,54 @@ export class ClosureSolver {
         .map((n) => this.robot.joints?.[n])
         .filter((j) => j && j.jointType !== 'fixed');
       if (joints.length === 0) continue;
-      this._resolved.push({
+      const resolved = {
         spec: c,
         linkA,
         linkB,
         anchorA: new Vector3().fromArray(c.anchorA),
         anchorB: new Vector3().fromArray(c.anchorB),
-      });
+      };
+      this._resolved.push(resolved);
+      withJoints.push({ resolved, joints });
       for (const j of joints) unknownSet.set(j.name, j);
     }
     this._unknowns = [...unknownSet.values()];
+
+    // Group closures into independent components (closures sharing passive
+    // joints solve together; unrelated loops solve — and recover — alone).
+    const comps = [];
+    for (const { resolved, joints } of withJoints) {
+      const merged = { closures: [resolved], joints: new Set(joints) };
+      for (let i = comps.length - 1; i >= 0; i--) {
+        if ([...comps[i].joints].some((j) => merged.joints.has(j))) {
+          merged.closures.push(...comps[i].closures);
+          for (const j of comps[i].joints) merged.joints.add(j);
+          comps.splice(i, 1);
+        }
+      }
+      comps.push(merged);
+    }
+    this._components = comps.map((c) => ({ closures: c.closures, joints: [...c.joints] }));
   }
 
   get passiveJointNames() {
+    // Only joints the solver actually drives — closures that failed to
+    // resolve (missing links/joints, none movable) contribute nothing, so
+    // their listed joints stay user-controllable instead of dead.
     const names = new Set();
-    for (const c of this.closures) {
-      if (c.enabled === false) continue;
-      for (const n of c.passiveJoints || []) names.add(n);
+    for (const comp of this._components ?? []) {
+      for (const j of comp.joints) names.add(j.name);
     }
     return names;
   }
 
   /** Residual vector: concatenated (pA - pB) for every enabled closure. */
-  computeResiduals(out = []) {
+  computeResiduals(out = [], closures = this._resolved) {
     this.robot.updateMatrixWorld(true);
     out.length = 0;
     const pA = new Vector3();
     const pB = new Vector3();
-    for (const c of this._resolved) {
+    for (const c of closures) {
       pA.copy(c.anchorA);
       c.linkA.localToWorld(pA);
       pB.copy(c.anchorB);
@@ -122,11 +143,53 @@ export class ClosureSolver {
   /**
    * Drive passive joints to close all loops. Warm-starts from current
    * values, so per-frame updates converge in a handful of iterations.
+   * Each independent component (loops sharing passive joints) is solved on
+   * its own; an abrupt input jump can wedge a warm start against a joint
+   * limit (a clamped local minimum), in which case that component — and
+   * only that component — retries from deterministic seeds spread across
+   * its limit ranges, keeping the best result.
    */
-  solve({ maxIterations = 50, tolerance = 1e-7, fdStep = 1e-5 } = {}) {
-    const joints = this._unknowns;
+  solve(opts = {}) {
+    if (!this._components?.length || this._unknowns.length === 0) {
+      this.robot.updateMatrixWorld(true);
+      return { converged: true, error: 0, iterations: 0 };
+    }
+    let errSq = 0;
+    let converged = true;
+    let iterations = 0;
+    for (const comp of this._components) {
+      let res = this._run(comp, opts);
+      if (!res.converged) {
+        let bestQ = comp.joints.map((j) => this._getValue(j));
+        const seedValue = (j, t) => {
+          const { lower, upper } = this._limits(j);
+          if (t === null || !Number.isFinite(lower) || !Number.isFinite(upper)) return 0;
+          return lower + t * (upper - lower);
+        };
+        for (const t of [0.5, 0.25, 0.75, null]) {
+          // null = rest pose (the exported zero closes every loop)
+          comp.joints.forEach((j) => this._setValue(j, seedValue(j, t)));
+          const retry = this._run(comp, opts);
+          if (retry.error < res.error) {
+            res = retry;
+            bestQ = comp.joints.map((j) => this._getValue(j));
+          }
+          if (retry.converged) break;
+        }
+        comp.joints.forEach((j, i) => this._setValue(j, bestQ[i]));
+        this.robot.updateMatrixWorld(true);
+      }
+      errSq += res.error * res.error;
+      converged &&= res.converged;
+      iterations = Math.max(iterations, res.iterations);
+    }
+    return { converged, error: Math.sqrt(errSq), iterations };
+  }
+
+  _run(comp, { maxIterations = 50, tolerance = 1e-7, fdStep = 1e-5 } = {}) {
+    const joints = comp.joints;
     const n = joints.length;
-    if (n === 0 || this._resolved.length === 0) {
+    if (n === 0 || comp.closures.length === 0) {
       return { converged: true, error: 0, iterations: 0 };
     }
 
@@ -136,7 +199,7 @@ export class ClosureSolver {
     };
 
     apply(q);
-    let r = this.computeResiduals();
+    let r = this.computeResiduals([], comp.closures);
     let err = norm(r);
     let lambda = 1e-6;
     let iter = 0;
@@ -149,7 +212,7 @@ export class ClosureSolver {
       for (let k = 0; k < n; k++) {
         const saved = q[k];
         this._setValue(joints[k], saved + fdStep);
-        const rPlus = this.computeResiduals([]);
+        const rPlus = this.computeResiduals([], comp.closures);
         this._setValue(joints[k], saved);
         for (let i = 0; i < m; i++) J[i][k] = (rPlus[i] - r[i]) / fdStep;
       }
@@ -174,20 +237,25 @@ export class ClosureSolver {
           lambda *= 10;
           continue;
         }
-        const qTrial = q.map((v, i) => v + dq[i]);
-        apply(qTrial);
-        // Read back clamped values so limits are respected in state
-        const qClamped = joints.map((j) => this._getValue(j));
-        const rTrial = this.computeResiduals([]);
-        const errTrial = norm(rTrial);
-        if (errTrial < err) {
-          q = qClamped;
-          r = rTrial;
-          err = errTrial;
-          lambda = Math.max(lambda * 0.3, 1e-9);
-          improved = true;
-          break;
+        // Backtracking line search: near joint limits a full step gets
+        // clamped into a worse position; a scaled step often still helps.
+        for (const scale of [1, 0.5, 0.2]) {
+          const qTrial = q.map((v, i) => v + dq[i] * scale);
+          apply(qTrial);
+          // Read back clamped values so limits are respected in state
+          const qClamped = joints.map((j) => this._getValue(j));
+          const rTrial = this.computeResiduals([], comp.closures);
+          const errTrial = norm(rTrial);
+          if (errTrial < err) {
+            q = qClamped;
+            r = rTrial;
+            err = errTrial;
+            lambda = Math.max(lambda * 0.3, 1e-9);
+            improved = true;
+            break;
+          }
         }
+        if (improved) break;
         lambda *= 10;
       }
       if (!improved) break; // stuck (e.g. linkage at a lock-up); keep best

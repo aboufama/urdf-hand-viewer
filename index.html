@@ -48,6 +48,7 @@
         <div class="row">
           <button id="btn-connect">Connect USB</button>
           <label class="chk"><input type="checkbox" id="chk-torque" checked /> Torque</label>
+          <label class="chk" title="Stall-torque cap (%) — keep low to protect gears and linkage parts">Torque % <input type="number" id="hw-torque" value="15" min="3" max="100" step="1" /></label>
           <label class="chk">Speed <input type="number" id="hw-speed" value="800" min="50" max="3000" step="50" /></label>
           <span id="hw-status">disconnected</span>
         </div>
